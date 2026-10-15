@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#09121d" />
+    <title>BLUE / Launch Vehicle 01</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, "Segoe UI", sans-serif;
+        background: #09121d;
+        color: #e8f0f6;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-width: 320px; min-height: 100vh; }
+      button { font: inherit; }
+      .app { display: grid; grid-template-columns: 270px minmax(0, 1fr); height: 100vh; min-height: 100vh; }
+      aside {
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 27px;
+        overflow-y: auto;
+        padding: 25px 20px;
+        border-right: 1px solid #1d2b3b;
+        background: linear-gradient(160deg, #101c29 0%, #0b1520 72%);
+      }
+      .brand { display: flex; align-items: center; gap: 11px; letter-spacing: .15em; font-size: 12px; font-weight: 750; }
+      .brand-mark { display: grid; width: 31px; height: 31px; place-items: center; border: 1px solid #3a8ecb; border-radius: 9px; color: #75c8ff; font-size: 15px; }
+      .eyebrow { color: #75c8ff; font-size: 9px; font-weight: 750; letter-spacing: .19em; text-transform: uppercase; }
+      h1 { margin: 8px 0 7px; font-size: 22px; line-height: 1.15; letter-spacing: -.04em; }
+      .intro { margin: 0; color: #91a4b5; font-size: 12px; line-height: 1.65; }
+      .section-label { margin: 0 0 11px; color: #758a9c; font-size: 9px; font-weight: 750; letter-spacing: .16em; text-transform: uppercase; }
+      .view-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+      .view-button, .export-button {
+        min-height: 38px;
+        border: 1px solid #26384a;
+        border-radius: 7px;
+        background: #111f2d;
+        color: #c6d4df;
+        cursor: pointer;
+        font-size: 11px;
+        transition: background .18s ease, border-color .18s ease, color .18s ease;
+      }
+      .view-button:hover, .export-button:hover { border-color: #408fc0; background: #162b3c; color: #fff; }
+      .view-button[aria-pressed="true"] { border-color: #368dca; background: #12304a; color: #a9dcff; }
+      .view-button span { margin-right: 5px; color: #69bdf2; font-size: 10px; }
+      .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 10px 0; border-bottom: 1px solid #1d2a38; color: #afbdc9; font-size: 11px; }
+      .toggle-row input { width: 15px; height: 15px; accent-color: #399bd8; }
+      .export-list { display: grid; gap: 7px; }
+      .export-button { display: flex; align-items: center; justify-content: space-between; padding: 0 11px; }
+      .export-button span:last-child { color: #6f91a9; font-size: 9px; letter-spacing: .1em; }
+      .spec-card { margin-top: auto; padding: 13px; border: 1px solid #223345; border-radius: 8px; background: #0e1a27; }
+      .spec-row { display: flex; justify-content: space-between; padding: 5px 0; color: #879aaa; font-size: 10px; }
+      .spec-row strong { color: #d0dce5; font-weight: 550; }
+      main { position: relative; min-width: 0; min-height: 0; height: 100%; overflow: hidden; }
+      #scene { position: absolute; inset: 0; }
+      #scene canvas { display: block; width: 100%; height: 100%; }
+      .hud { position: absolute; z-index: 1; top: 24px; right: 25px; left: 25px; display: flex; justify-content: space-between; pointer-events: none; }
+      .hud-chip { padding: 8px 10px; border: 1px solid #3143539c; border-radius: 6px; background: #0b1723c9; color: #aab9c6; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; backdrop-filter: blur(8px); }
+      .hud-chip b { color: #80caff; font-weight: 700; }
+      .bottom-hud { position: absolute; right: 25px; bottom: 20px; left: 25px; display: flex; align-items: end; justify-content: space-between; pointer-events: none; }
+      .caption { color: #a4b4c2; font-size: 10px; line-height: 1.6; text-shadow: 0 2px 10px #000; }
+      .caption strong { color: #e2edf5; font-size: 11px; letter-spacing: .11em; }
+      .controls-hint { padding: 8px 10px; border: 1px solid #304254; border-radius: 6px; background: #0b1723bd; color: #9eafbd; font-size: 9px; }
+      .loading { position: absolute; inset: 0; display: grid; place-items: center; color: #8fcfff; font-size: 11px; letter-spacing: .17em; text-transform: uppercase; }
+      .error { position: absolute; inset: auto 20px 20px; padding: 14px; border: 1px solid #794c4c; border-radius: 8px; background: #281919; color: #f1caca; font-size: 12px; line-height: 1.55; }
+      @media (max-width: 760px) {
+        .app { grid-template-columns: 1fr; height: auto; }
+        aside { gap: 18px; overflow: visible; padding: 17px; border-right: 0; border-bottom: 1px solid #1d2b3b; }
+        .project-head { display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 12px; }
+        .project-head .eyebrow, .project-head h1, .project-head .intro { grid-column: 1; }
+        .project-head .intro { max-width: 460px; }
+        .brand { grid-column: 1 / -1; }
+        .spec-card { display: none; }
+        main { height: 65vh; min-height: 65vh; }
+        .hud { top: 14px; right: 14px; left: 14px; }
+        .bottom-hud { right: 14px; bottom: 14px; left: 14px; }
+      }
+      @media (max-width: 430px) {
+        .hud-chip { padding: 7px; font-size: 8px; }
+        .controls-hint { max-width: 150px; line-height: 1.5; }
+      }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="app">
+      <aside>
+        <div class="brand"><span class="brand-mark">B</span><span>BLUE / FLIGHT SYSTEMS</span></div>
+        <section class="project-head">
+          <div class="eyebrow">Engineering visualization · 01</div>
+          <h1>Launch Vehicle</h1>
+          <p class="intro">A reusable orbital-class demonstrator. Inspect the vehicle, explore its propulsion layout, and export the model for your project.</p>
+        </section>
+        <section>
+          <h2 class="section-label">Camera views</h2>
+          <div class="view-grid">
+            <button class="view-button" data-view="front" aria-pressed="true"><span>01</span>Front</button>
+            <button class="view-button" data-view="side" aria-pressed="false"><span>02</span>Side</button>
+            <button class="view-button" data-view="rear" aria-pressed="false"><span>03</span>Rear</button>
+            <button class="view-button" data-view="top" aria-pressed="false"><span>04</span>Top</button>
+          </div>
+        </section>
+        <section>
+          <h2 class="section-label">Visibility</h2>
+          <label class="toggle-row"><span>Fuel system cutaway</span><input id="cutaway-toggle" type="checkbox" checked /></label>
+          <label class="toggle-row"><span>Launch platform</span><input id="platform-toggle" type="checkbox" checked /></label>
+          <label class="toggle-row"><span>Technical annotations</span><input id="labels-toggle" type="checkbox" checked /></label>
+        </section>
+        <section>
+          <h2 class="section-label">Export model</h2>
+          <div class="export-list">
+            <button class="export-button" data-export="glb"><span>Download GLB</span><span>SCENE + MATERIALS</span></button>
+            <button class="export-button" data-export="obj"><span>Download OBJ</span><span>GEOMETRY</span></button>
+            <button class="export-button" data-export="stl"><span>Download STL</span><span>GEOMETRY</span></button>
+          </div>
+        </section>
+        <section class="spec-card">
+          <h2 class="section-label">Vehicle data</h2>
+          <div class="spec-row"><span>Configuration</span><strong>Orbital · 1 stage</strong></div>
+          <div class="spec-row"><span>Core diameter</span><strong>3.8 m</strong></div>
+          <div class="spec-row"><span>Overall height</span><strong>28.0 m</strong></div>
+          <div class="spec-row"><span>Propulsion</span><strong>5 × LOX / RP-1</strong></div>
+        </section>
+      </aside>
+      <main>
+        <div id="scene"></div>
+        <div class="loading" id="loading">Preparing vehicle model…</div>
+        <div class="hud">
+          <div class="hud-chip"><b>LV—01</b> &nbsp; Flight article</div>
+          <div class="hud-chip">Interactive 3D &nbsp;·&nbsp; <b>28.0 M</b></div>
+        </div>
+        <div class="bottom-hud">
+          <div class="caption"><strong>BLUE / ORBITAL DEMONSTRATOR</strong><br />Concept vehicle · Engineering study</div>
+          <div class="controls-hint">Drag to orbit · Scroll to zoom · Right-drag to pan</div>
+        </div>
+      </main>
+    </div>
+
+    <script type="module">
+      import * as THREE from "three";
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+      import { GLTFExporter } from "three/addons/exporters/GLTFExporter.js";
+      import { OBJExporter } from "three/addons/exporters/OBJExporter.js";
+      import { STLExporter } from "three/addons/exporters/STLExporter.js";
+
+      const host = document.querySelector("#scene");
+      const loading = document.querySelector("#loading");
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color("#101b27");
+      scene.fog = new THREE.Fog("#101b27", 37, 90);
+
+      const camera = new THREE.PerspectiveCamera(39, 1, 0.1, 150);
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.15;
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      host.appendChild(renderer.domElement);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.07;
+      controls.minDistance = 13;
+      controls.maxDistance = 58;
+      controls.maxPolarAngle = Math.PI * 0.49;
+      controls.target.set(0, 13.5, 0);
+
+      scene.add(new THREE.HemisphereLight("#c7e2ff", "#202833", 2.0));
+      const key = new THREE.DirectionalLight("#fff1d8", 4.1);
+      key.position.set(-10, 22, 15);
+      key.castShadow = true;
+      key.shadow.mapSize.set(2048, 2048);
+      key.shadow.camera.left = -18;
+      key.shadow.camera.right = 18;
+      key.shadow.camera.top = 34;
+      key.shadow.camera.bottom = -10;
+      key.shadow.bias = -0.0002;
+      scene.add(key);
+      const rim = new THREE.DirectionalLight("#5da9e4", 3.1);
+      rim.position.set(13, 18, -12);
+      scene.add(rim);
+      const fill = new THREE.PointLight("#b9dfff", 65, 48);
+      fill.position.set(2, 8, 11);
+      scene.add(fill);
+
+      const rocket = new THREE.Group();
+      rocket.name = "LV-01 Launch Vehicle";
+      const platform = new THREE.Group();
+      platform.name = "Launch Platform";
+      const annotations = new THREE.Group();
+      annotations.name = "Technical Markings and Windows";
+      const cutaway = new THREE.Group();
+      cutaway.name = "Transparent Fuel System Cutaway";
+      rocket.add(cutaway, annotations);
+      scene.add(rocket, platform);
+
+      const mat = (color, metalness = 0, roughness = 0.4, extra = {}) =>
+        new THREE.MeshStandardMaterial({ color, metalness, roughness, ...extra });
+      const white = mat("#e8edf0", 0.58, 0.28);
+      const ceramic = mat("#f7f8f6", 0.18, 0.25);
+      const silver = mat("#8293a0", 0.88, 0.25);
+      const darkMetal = mat("#202b35", 0.84, 0.3);
+      const blue = mat("#176ca5", 0.72, 0.25);
+      const gold = mat("#bd8a45", 0.75, 0.28);
+      const black = mat("#10161b", 0.42, 0.48);
+      const orange = mat("#f08a37", 0.28, 0.34);
+      const glass = mat("#47b5e8", 0.32, 0.12, { transparent: true, opacity: 0.27, side: THREE.DoubleSide, depthWrite: false });
+      const tankMat = mat("#a9d8e7", 0.55, 0.24, { transparent: true, opacity: 0.72, side: THREE.DoubleSide });
+      const accentLine = mat("#77c9fb", 0.52, 0.24, { emissive: "#14507b", emissiveIntensity: 0.38 });
+
+      function mesh(geometry, material, parent, name, position = [0, 0, 0], rotation = [0, 0, 0]) {
+        const object = new THREE.Mesh(geometry, material);
+        object.name = name;
+        object.position.set(...position);
+        object.rotation.set(...rotation);
+        object.castShadow = true;
+        object.receiveShadow = true;
+        parent.add(object);
+        return object;
+      }
+      function cylinder(radiusTop, radiusBottom, height, material, parent, name, position, segments = 64) {
+        return mesh(new THREE.CylinderGeometry(radiusTop, radiusBottom, height, segments, 1), material, parent, name, position);
+      }
+      function ring(y, radius, height, material, parent = rocket, name = "Structural ring") {
+        return cylinder(radius + 0.045, radius + 0.045, height, material, parent, name, [0, y, 0], 72);
+      }
+      function torusAt(y, radius, tube, material, parent, name) {
+        return mesh(new THREE.TorusGeometry(radius, tube, 8, 96), material, parent, name, [0, y, 0], [Math.PI / 2, 0, 0]);
+      }
+      function label(text, position, rotation = [0, 0, 0], color = "#153a50", size = 86) {
+        const canvas = document.createElement("canvas");
+        canvas.width = 512;
+        canvas.height = 128;
+        const context = canvas.getContext("2d");
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.font = `700 ${size}px Arial`;
+        context.fillStyle = color;
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        context.fillText(text, canvas.width / 2, canvas.height / 2);
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        const sign = mesh(new THREE.PlaneGeometry(1.48, 0.37), new THREE.MeshBasicMaterial({ map: texture, transparent: true, side: THREE.DoubleSide, depthWrite: false }), annotations, `Marking: ${text}`, position, rotation);
+        return sign;
+      }
+      function panelLine(y, radius, material = silver, parent = rocket) {
+        const curve = new THREE.EllipseCurve(0, 0, radius, radius, 0, Math.PI * 2);
+        const points = curve.getPoints(96).map((point) => new THREE.Vector3(point.x, y, point.y));
+        return mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 96, 0.012, 6, true), material, parent, "Fuselage panel seam");
+      }
+      function finGeometry() {
+        const profile = [
+          new THREE.Vector2(1.63, 2.35),
+          new THREE.Vector2(1.67, 5.05),
+          new THREE.Vector2(2.05, 5.08),
+          new THREE.Vector2(3.14, 2.58),
+          new THREE.Vector2(3.02, 2.27),
+          new THREE.Vector2(1.63, 2.35),
+        ];
+        const shape = new THREE.Shape(profile);
+        const geometry = new THREE.ExtrudeGeometry(shape, { depth: 0.16, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.065, bevelThickness: 0.065, curveSegments: 3 });
+        geometry.translate(0, 0, -0.08);
+        return geometry;
+      }
+      function nozzleGeometry() {
+        const profile = [
+          new THREE.Vector2(0.43, 0),
+          new THREE.Vector2(0.49, 0.14),
+          new THREE.Vector2(0.52, 0.35),
+          new THREE.Vector2(0.75, 1.07),
+          new THREE.Vector2(0.83, 1.42),
+          new THREE.Vector2(0.77, 1.43),
+          new THREE.Vector2(0.68, 1.12),
+          new THREE.Vector2(0.45, 0.42),
+          new THREE.Vector2(0.39, 0.15),
+          new THREE.Vector2(0.43, 0),
+        ];
+        return new THREE.LatheGeometry(profile, 48);
+      }
+
+      // The main airframe is split into distinct stages to keep the tank cutaway legible.
+      const upperShellCutaway = new THREE.CylinderGeometry(1.88, 1.88, 8.1, 96, 1, true, 0.4, Math.PI * 2 - 0.8);
+      const upperShellFull = new THREE.CylinderGeometry(1.88, 1.88, 8.1, 96);
+      const lowerShellCutaway = new THREE.CylinderGeometry(1.88, 1.88, 5.15, 96, 1, true, 0.4, Math.PI * 2 - 0.8);
+      const lowerShellFull = new THREE.CylinderGeometry(1.88, 1.88, 5.15, 96);
+      const upperShell = mesh(upperShellCutaway, white, rocket, "Upper cryogenic tank outer shell", [0, 17.15, 0]);
+      cylinder(1.88, 1.88, 6.1, ceramic, rocket, "Intertank and avionics bay shell", [0, 10.05, 0]);
+      const lowerShell = mesh(lowerShellCutaway, white, rocket, "Lower propellant tank outer shell", [0, 4.5, 0]);
+      const nose = mesh(new THREE.ConeGeometry(1.88, 6.8, 96, 1), ceramic, rocket, "Aerodynamic ogive nose cone", [0, 21.2, 0]);
+      nose.geometry.translate(0, 3.4, 0);
+      ring(2.08, 1.76, 0.3, darkMetal, rocket, "Engine thrust frame");
+      ring(6.98, 1.89, 0.18, silver, rocket, "Forward stage structural ring");
+      ring(13.1, 1.89, 0.16, silver, rocket, "Intertank separation ring");
+      ring(16.98, 1.89, 0.18, darkMetal, rocket, "Upper tank seam");
+      ring(21.22, 1.89, 0.15, silver, rocket, "Nose shoulder ring");
+      ring(21.58, 1.89, 0.1, blue, rocket, "Nose shoulder blue band");
+      [2.52, 6.78, 7.18, 12.92, 13.3, 16.72, 17.16, 21.06].forEach((y) => panelLine(y, 1.89));
+
+      for (const angle of [0, Math.PI / 2, Math.PI, Math.PI * 1.5]) {
+        const fin = mesh(finGeometry(), blue, rocket, "Swept stabilizing fin", [0, 0, 0], [0, angle, 0]);
+        fin.material = blue;
+        const rootRib = cylinder(0.055, 0.055, 2.05, silver, rocket, "Fin attachment fastener rail", [1.72, 3.62, 0]);
+        rootRib.rotation.z = Math.PI / 2;
+        rootRib.rotation.y = angle;
+        const tipStripe = mesh(new THREE.BoxGeometry(0.58, 0.075, 0.2), orange, rocket, "Fin warning stripe", [2.57, 2.65, 0], [0, angle, -0.39]);
+        tipStripe.castShadow = true;
+      }
+
+      // Five bells form a center-and-four propulsion cluster, each with an articulated mount.
+      const enginePositions = [[0, 0], [0.77, 0], [-0.77, 0], [0, 0.77], [0, -0.77]];
+      enginePositions.forEach(([x, z], index) => {
+        const gimbal = mesh(new THREE.SphereGeometry(0.45, 28, 20), gold, rocket, `Engine ${index + 1} gimbal joint`, [x, 1.72, z]);
+        gimbal.scale.set(0.88, 0.62, 0.88);
+        mesh(nozzleGeometry(), darkMetal, rocket, `Engine ${index + 1} regeneratively cooled nozzle`, [x, 1.25, z], [Math.PI, 0, 0]);
+        cylinder(0.78, 0.82, 0.12, silver, rocket, `Engine ${index + 1} exit lip`, [x, -0.17, z], 48);
+        cylinder(0.57, 0.63, 0.22, black, rocket, `Engine ${index + 1} throat`, [x, 0.48, z], 40);
+        const glow = mesh(new THREE.CircleGeometry(0.42, 40), mat("#f18743", 0.2, 0.3, { emissive: "#ff5718", emissiveIntensity: 1.5 }), rocket, `Engine ${index + 1} chamber glow`, [x, 0.33, z], [Math.PI / 2, 0, 0]);
+        glow.visible = false;
+      });
+      cylinder(1.49, 1.56, 0.26, darkMetal, rocket, "Engine bay base plate", [0, 1.95, 0]);
+      for (let i = 0; i < 16; i++) {
+        const angle = (i / 16) * Math.PI * 2;
+        cylinder(0.035, 0.035, 0.52, gold, rocket, "Thrust frame brace", [1.36 * Math.cos(angle), 1.56, 1.36 * Math.sin(angle)], 8);
+      }
+
+      // Transparent window and visible internal tanks expose the vehicle's layered construction.
+      cylinder(1.32, 1.32, 5.65, tankMat, cutaway, "Internal LOX tank", [0, 16.95, 0]);
+      cylinder(1.32, 1.32, 4.5, mat("#87b9d4", 0.48, 0.26, { transparent: true, opacity: 0.66, side: THREE.DoubleSide }), cutaway, "Internal RP-1 tank", [0, 4.63, 0]);
+      const upperWindow = mesh(new THREE.CylinderGeometry(1.895, 1.895, 8.02, 48, 1, true, Math.PI * 2 - 0.8, 0.8), glass, cutaway, "Upper curved cutaway inspection window", [0, 17.15, 0]);
+      const lowerWindow = mesh(new THREE.CylinderGeometry(1.895, 1.895, 5.07, 48, 1, true, Math.PI * 2 - 0.8, 0.8), glass, cutaway, "Lower curved cutaway inspection window", [0, 4.5, 0]);
+      for (const [y, height] of [[17.15, 8.02], [4.5, 5.07]]) {
+        for (const angle of [-0.4, 0.4]) {
+          const x = 1.9 * Math.sin(angle);
+          const z = 1.9 * Math.cos(angle);
+          const edge = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(x, y - height / 2, z),
+            new THREE.Vector3(x, y, z),
+            new THREE.Vector3(x, y + height / 2, z),
+          ]);
+          mesh(new THREE.TubeGeometry(edge, 24, 0.035, 8, false), blue, cutaway, "Cutaway window structural frame");
+        }
+      }
+      for (const [y, radius, color] of [[14.08, 1.35, "#51c9ff"], [19.82, 1.35, "#51c9ff"], [2.38, 1.38, "#e1aa58"], [6.9, 1.38, "#e1aa58"]]) {
+        torusAt(y, radius, 0.038, mat(color, 0.55, 0.2), cutaway, "Internal tank bulkhead");
+      }
+      cylinder(0.8, 0.8, 0.16, gold, cutaway, "Common bulkhead", [0, 11.98, 0], 64);
+      cylinder(0.72, 0.56, 1.15, gold, cutaway, "Feed manifold", [0, 2.82, 0], 32);
+      for (let i = 0; i < 4; i++) {
+        const angle = i * Math.PI / 2;
+        const pipeCurve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0.58 * Math.cos(angle), 3.3, 0.58 * Math.sin(angle)),
+          new THREE.Vector3(0.95 * Math.cos(angle), 2.8, 0.95 * Math.sin(angle)),
+          new THREE.Vector3(1.13 * Math.cos(angle), 2.2, 1.13 * Math.sin(angle)),
+        ]);
+        mesh(new THREE.TubeGeometry(pipeCurve, 24, 0.075, 10, false), gold, cutaway, "Propellant feed line");
+      }
+      cylinder(0.68, 0.68, 1.08, darkMetal, cutaway, "Avionics instrument stack", [0, 10.25, 0], 32);
+      for (const y of [9.86, 10.2, 10.57]) ring(y, 0.7, 0.07, accentLine, cutaway, "Avionics status ring");
+      for (let i = 0; i < 8; i++) {
+        const angle = i * Math.PI / 4;
+        cylinder(0.035, 0.035, 0.55, accentLine, cutaway, "Tank sensor cable", [0.96 * Math.cos(angle), 15.95, 0.96 * Math.sin(angle)], 8);
+      }
+      // Blue longitudinal stripes and external access/inspection details.
+      for (const angle of [0.05, Math.PI - 0.05]) {
+        const curvePoints = [];
+        for (let i = 0; i <= 60; i++) {
+          const y = 2.7 + i * 0.3;
+          curvePoints.push(new THREE.Vector3(1.897 * Math.sin(angle), y, 1.897 * Math.cos(angle)));
+        }
+        mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(curvePoints), 90, 0.022, 7, false), blue, rocket, "Longitudinal blue identification stripe");
+      }
+      for (const y of [7.75, 8.38, 8.98, 9.58]) {
+        const radius = 1.892;
+        const frame = cylinder(0.22, 0.22, 0.07, darkMetal, annotations, "Inspection port bezel", [0, y, radius]);
+        frame.rotation.x = Math.PI / 2;
+        const viewport = cylinder(0.157, 0.157, 0.078, glass, annotations, "Blue-tinted inspection port", [0, y, radius + 0.05]);
+        viewport.rotation.x = Math.PI / 2;
+      }
+      for (let i = 0; i < 9; i++) {
+        const x = -0.68 + i * 0.17;
+        const rivet = mesh(new THREE.SphereGeometry(0.035, 10, 8), silver, annotations, "Avionics bay fastener", [x, 12.4, 1.88]);
+        rivet.scale.z = 0.35;
+      }
+      label("BLUE", [0, 8.7, 1.91], [0, 0, 0], "#134c70", 92);
+      label("LV—01  /  FLIGHT ARTICLE", [0, 7.95, 1.91], [0, 0, 0], "#183e55", 38);
+      label("LOX  /  RP-1", [-0.92, 17.8, 1.52], [0, -0.54, 0], "#31546b", 44);
+      label("CAUTION  •  HIGH PRESSURE", [0, 3.42, 1.895], [0, 0, 0], "#a4531e", 34);
+      label("NO STEP", [2.53, 3.24, 0.14], [0, Math.PI / 2, 0], "#fff2cf", 34);
+
+      // Service deck, launch table, four legs, exhaust trench and pipework.
+      const concrete = mat("#404e5b", 0.55, 0.72);
+      const steel = mat("#647786", 0.8, 0.32);
+      const deck = mesh(new THREE.BoxGeometry(12, 0.5, 12), concrete, platform, "Launch table deck", [0, 0.95, 0]);
+      deck.castShadow = true;
+      mesh(new THREE.BoxGeometry(5.2, 0.36, 7.6), darkMetal, platform, "Exhaust flame trench", [0, 0.48, 0]);
+      for (let i = -2; i <= 2; i++) {
+        mesh(new THREE.BoxGeometry(0.08, 0.025, 6.6), steel, platform, "Trench heat shield rib", [i * 0.55, 0.68, 0]);
+      }
+      for (const x of [-4.3, 4.3]) {
+        for (const z of [-4.3, 4.3]) {
+          const leg = cylinder(0.22, 0.34, 1.65, steel, platform, "Platform support pier", [x, 0.05, z], 8);
+          leg.rotation.z = x < 0 ? -0.08 : 0.08;
+          mesh(new THREE.BoxGeometry(1.2, 0.14, 1.2), darkMetal, platform, "Support footing", [x, -0.83, z]);
+        }
+      }
+      for (const x of [-2.4, 2.4]) {
+        const tower = mesh(new THREE.BoxGeometry(0.28, 12.7, 0.28), steel, platform, "Umbilical service tower", [x, 7.55, -1.85]);
+        tower.castShadow = true;
+        for (let y = 1.7; y < 14; y += 1.4) {
+          mesh(new THREE.BoxGeometry(0.12, 0.09, 3.9), silver, platform, "Tower cross brace", [x, y, -0.1]);
+        }
+        mesh(new THREE.BoxGeometry(0.65, 0.3, 2.4), blue, platform, "Quick-disconnect service arm", [Math.sign(x) * 1.95, 12.9, -1.7]);
+        mesh(new THREE.BoxGeometry(0.28, 0.24, 0.24), orange, platform, "Tower warning beacon", [x, 14.1, -1.85]);
+      }
+      for (let i = -3; i <= 3; i++) {
+        const rail = mesh(new THREE.BoxGeometry(0.06, 0.08, 6.8), gold, platform, "Deck safety rail", [i * 0.75, 1.23, -3.85]);
+        rail.castShadow = true;
+      }
+      for (const z of [-2.8, 2.8]) {
+        mesh(new THREE.BoxGeometry(0.14, 0.24, 0.14), orange, platform, "Deck warning bollard", [0, 1.28, z]);
+      }
+      const groundMat = mat("#202c37", 0.22, 0.86);
+      const ground = mesh(new THREE.PlaneGeometry(200, 200), groundMat, scene, "Studio ground", [0, -0.93, 0], [-Math.PI / 2, 0, 0]);
+      ground.receiveShadow = true;
+
+      function resize() {
+        const width = host.clientWidth;
+        const height = host.clientHeight;
+        if (!width || !height) return;
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height);
+      }
+      new ResizeObserver(resize).observe(host);
+      resize();
+
+      const viewPositions = {
+        front: new THREE.Vector3(0, 14.2, 49),
+        side: new THREE.Vector3(49, 14.2, 0),
+        rear: new THREE.Vector3(0, 14.2, -49),
+        top: new THREE.Vector3(0, 47, 0.01),
+      };
+      function setView(view) {
+        camera.position.copy(viewPositions[view]);
+        controls.target.set(0, view === "top" ? 13.5 : 13.5, 0);
+        controls.update();
+        document.querySelectorAll("[data-view]").forEach((button) => {
+          button.setAttribute("aria-pressed", String(button.dataset.view === view));
+        });
+      }
+      document.querySelectorAll("[data-view]").forEach((button) => {
+        button.addEventListener("click", () => setView(button.dataset.view));
+      });
+      document.querySelector("#cutaway-toggle").addEventListener("change", (event) => {
+        cutaway.visible = event.target.checked;
+        upperShell.geometry = event.target.checked ? upperShellCutaway : upperShellFull;
+        lowerShell.geometry = event.target.checked ? lowerShellCutaway : lowerShellFull;
+        upperWindow.visible = event.target.checked;
+        lowerWindow.visible = event.target.checked;
+      });
+      document.querySelector("#platform-toggle").addEventListener("change", (event) => {
+        platform.visible = event.target.checked;
+      });
+      document.querySelector("#labels-toggle").addEventListener("change", (event) => {
+        annotations.visible = event.target.checked;
+      });
+
+      function downloadBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = filename;
+        anchor.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+      function createExportScene() {
+        const output = new THREE.Scene();
+        output.name = "BLUE LV-01 Vehicle and Launch Platform";
+        output.add(rocket.clone(true), platform.clone(true));
+        return output;
+      }
+      document.querySelectorAll("[data-export]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const format = button.dataset.export;
+          button.disabled = true;
+          const originalText = button.firstElementChild.textContent;
+          button.firstElementChild.textContent = "Preparing export…";
+          try {
+            if (format === "glb") {
+              new GLTFExporter().parse(createExportScene(), (result) => {
+                downloadBlob(new Blob([result], { type: "model/gltf-binary" }), "blue-lv-01.glb");
+                button.disabled = false;
+                button.firstElementChild.textContent = originalText;
+              }, (error) => {
+                console.error("GLB export failed:", error);
+                button.disabled = false;
+                button.firstElementChild.textContent = "Export failed";
+              }, { binary: true });
+            } else {
+              const exporter = format === "obj" ? new OBJExporter() : new STLExporter();
+              const output = exporter.parse(createExportScene());
+              const isObj = format === "obj";
+              downloadBlob(new Blob([output], { type: isObj ? "text/plain" : "model/stl" }), `blue-lv-01.${format}`);
+              button.disabled = false;
+              button.firstElementChild.textContent = originalText;
+            }
+          } catch (error) {
+            console.error(`${format.toUpperCase()} export failed:`, error);
+            button.disabled = false;
+            button.firstElementChild.textContent = "Export failed";
+          }
+        });
+      });
+      setView("front");
+      loading.remove();
+
+      function animate() {
+        controls.update();
+        renderer.render(scene, camera);
+        requestAnimationFrame(animate);
+      }
+      animate();
+    </script>
+  </body>
+</html>
